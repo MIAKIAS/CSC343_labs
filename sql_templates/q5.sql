@@ -26,9 +26,24 @@ SELECT n FROM q5_parameters;
 
 -- HINT: You can answer the question by writing one recursive query below, without any more views.
 -- Your query that answers the question goes below the "insert into" line:
-INSERT INTO q5
+INSERT INTO q5 
 
+WITH RECURSIVE Hopping AS (
+	(   -- Direct destination from YYZ
+		SELECT inbound AS destination, s_arv, 1 AS num_flights
+		FROM Flight
+		WHERE outbound = 'YYZ' AND s_dep::date = (select day from day)
+	) 
+	UNION ALL
+	(   -- Until num_flights = n
+		SELECT inbound AS destination, F.s_arv, num_flights + 1
+		FROM Hopping H JOIN Flight F
+		ON H.destination = F.outbound AND (F.s_dep - H.s_arv) < '24:00:00'
+		WHERE num_flights + 1 <= (select * from n)
+	)
+)
 
+SELECT destination, num_flights FROM Hopping;
 
 
 
