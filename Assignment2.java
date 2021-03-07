@@ -112,6 +112,7 @@ public class Assignment2 {
         try{
             // check valid passID flightID ?????? 还不清楚
 
+
             // sanity check
             if (seatClass != "economy" && seatClass != "business" && seatClass != "first"){
                 return false;
@@ -474,7 +475,7 @@ public class Assignment2 {
                     }
                 }
 
-                // delete the pessenger that are no place for upgrade
+                // delete the passenger that are no place for upgrade
 
                 if(num_to_upgrade>0){
                     System.out.printf("%d of passengers are deleted. No seats for them.\n", num_to_upgrade);
@@ -540,7 +541,7 @@ public class Assignment2 {
 
         try{
             Assignment2 a2 = new Assignment2();
-            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-sunlingw", "sunlingw", "");
+            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-wangw222", "wangw222", "");
             a2.bookSeat(1, 5, "economy");
             a2.bookSeat(3, 10, "economy");
             a2.bookSeat(3, 10, "economy");
