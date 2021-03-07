@@ -403,7 +403,7 @@ public class Assignment2 {
                         System.out.printf("The booking_id for upgrading is %d.\n", booking_id);
 
                         // obtained the new seats
-                        int new_row = (num_booked_bus+First_capacity-1) / 6 + (int)Math.ceil(First_capacity / 6.0) + 1;;
+                        int new_row = (num_booked_bus-1) / 6 + (int)Math.ceil(First_capacity / 6.0) + 1;;
                         char new_letter = (char)('A' + (num_booked_bus-1) % 6);
                         String new_seat_class = "business";
 
@@ -541,15 +541,22 @@ public class Assignment2 {
 
         try{
             Assignment2 a2 = new Assignment2();
-            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-wangw222", "wangw222", "");
-            a2.bookSeat(1, 5, "economy");
-            a2.bookSeat(3, 10, "economy");
-            a2.bookSeat(3, 10, "economy");
-            a2.bookSeat(3, 10, "economy");
-            a2.bookSeat(3, 10, "economy");
+            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-sunlingw", "sunlingw", "");
+
+            for(int i=0; i<140; i++) {
+                a2.bookSeat(1, 9, "economy");
+            }
+
+            for(int i=0;i<15;i++){
+                a2.bookSeat(1, 9, "business");
+            }
+
+            for(int i=0;i<5;i++){
+                a2.bookSeat(1, 9, "first");
+            }
 
             System.out.println("\n-----------------------------up grade----------------------");
-            a2.upgrade(10);
+            a2.upgrade(9);
             System.out.println("-----------------------------up grade----------------------\n");
             a2.disconnectDB();
         } catch (SQLException se){
