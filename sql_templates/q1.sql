@@ -34,7 +34,7 @@ ON F.flight_id = B.flight_id;
 
 -- Find the name of the passengers, and the number of different airlines they took
 CREATE VIEW TookBy AS
-SELECT p.id, surname||' '||firstname AS name, count(DISTINCT airline)
+SELECT p.id, firstname||' '||surname AS name, count(DISTINCT airline)
 FROM Took T RIGHT JOIN Passenger P
 ON T.pass_id = P.id
 GROUP BY P.id;
