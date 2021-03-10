@@ -23,8 +23,8 @@ DROP VIEW IF EXISTS TookBy CASCADE;
 -- Assume if a departure was make, an arrival also occured, as mentioned in handout
 CREATE VIEW FinishedFlight AS
 SELECT flight_id, airline
-FROM Flight F JOIN Departure D
-ON F.id = D.flight_id;
+FROM Flight F JOIN Arrival A
+ON F.id = A.flight_id;
 
 -- Relate Booking and FinishedFlight to find airlines each passenger took
 CREATE VIEW Took AS

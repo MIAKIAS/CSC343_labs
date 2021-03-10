@@ -53,13 +53,21 @@ public class Assignment2 {
             connection = DriverManager.getConnection(URL, username, password);
             System.out.println("Successfully Connected!");
 
-            // set search path
-            String queryString = "SET SEARCH_PATH TO air_travel, public";
-            PreparedStatement pStatement = connection.prepareStatement(queryString);
-            pStatement.executeUpdate();
-            System.out.println("Set search_path to air_travel, public");
+            if (connection != null){
+                // set search path
+                String queryString = "SET SEARCH_PATH TO air_travel, public";
+                PreparedStatement pStatement = connection.prepareStatement(queryString);
+                pStatement.executeUpdate();
+                System.out.println("Set search_path to air_travel, public");
 
-            return true;
+                return true;
+
+            } else{
+
+                return false;
+
+            }
+            
 
         } catch (SQLException se){
 
@@ -78,6 +86,10 @@ public class Assignment2 {
     public boolean disconnectDB() {
         // Implement this method!
         try{
+            if (connection == null){
+                System.out.println("Not Connected!");
+                return false;
+            }
 
             connection.close();
 
@@ -110,17 +122,43 @@ public class Assignment2 {
     public boolean bookSeat(int passID, int flightID, String seatClass) {
         // Implement this method!
         try{
-            // check valid passID flightID ?????? 还不清楚
-
-
-            // sanity check
-            if (seatClass != "economy" && seatClass != "business" && seatClass != "first"){
+            if (connection == null){
+                System.out.println("Not Connected!");
                 return false;
             }
 
             String queryString;
             PreparedStatement pStatement;
             ResultSet rs;
+
+            // sanity check
+            if (!seatClass.equals("economy") && !seatClass.equals("business") && !seatClass.equals("first")){
+                return false;
+            }
+
+            // check valid passID flightID ?????? 还不清楚
+
+            // check valid flightID
+            // Assume only consider flights with a scheduled departure time later than current time
+            queryString = "SELECT * FROM Flight WHERE id = ? AND s_dep >= now()";
+            pStatement = connection.prepareStatement(queryString);
+            pStatement.setInt(1, flightID);
+            rs = pStatement.executeQuery();
+            if (!rs.next()){
+                System.out.println("No such a flight.");
+                return false;
+            }
+
+            // check valid passID
+            queryString = "SELECT * FROM Passenger WHERE id = ?";
+            pStatement = connection.prepareStatement(queryString);
+            pStatement.setInt(1, passID);
+            rs = pStatement.executeQuery();
+            if (!rs.next()){
+                System.out.println("No such a passenger.");
+                return false;
+            }
+            
 
             // check the capacity of the flight
             queryString = "SELECT capacity_economy, capacity_business, capacity_first FROM Flight, Plane WHERE id = ? AND Flight.plane = tail_number";
@@ -164,20 +202,19 @@ public class Assignment2 {
             }
             System.out.printf("Number of seats booked: %d\n", num_booked);
 
-            if (seatClass == "business" || seatClass == "first"){
+            if (seatClass.equals("business") || seatClass.equals("first")){
 
                 // check whether there is empty seat
-                if ((seatClass == "business" && num_booked >= Bus_capacity)
-                        || (seatClass == "first" && num_booked >= First_capacity)){
+                if ((seatClass.equals("business") && num_booked >= Bus_capacity)
+                        || (seatClass.equals("first") && num_booked >= First_capacity)){
                     System.out.println("No more seat. Cannot finish the request.");
                     return false;
                 }
 
                 // if there is emtpy seats
 
-                // 如果passID不在passenger里？？？
-
                 // get the current price
+                // 如果这个flight没有对应的price？？？？？
                 queryString = "SELECT " + seatClass + " FROM Price WHERE flight_id = ?";
                 pStatement = connection.prepareStatement(queryString);
                 pStatement.setInt(1, flightID);
@@ -192,17 +229,17 @@ public class Assignment2 {
 
                 // calculate the seat number
                 int row = 0;
-                char letter;
+                String letter;
 
-                if (seatClass == "first"){
+                if (seatClass.equals("first")){
                     row = num_booked / 6 + 1;
-                    letter = (char)('A' + num_booked % 6);
+                    letter = seatLetters.get(num_booked % 6);
                 } else{
                     row = num_booked / 6 + (int)Math.ceil(First_capacity / 6.0) + 1;
-                    letter = (char)('A' + num_booked % 6);
+                    letter = seatLetters.get(num_booked % 6);
                 }
 
-                System.out.printf("Booked seat at: %d%c\n", row, letter);
+                System.out.printf("Booked seat at: %d%s\n", row, letter);
 
                 // insert the booking information into table Booking
                 queryString = "INSERT INTO Booking VALUES (?,?,?,?,?,?::seat_class,?,?)";
@@ -214,7 +251,7 @@ public class Assignment2 {
                 pStatement.setInt(5, price);
                 pStatement.setString(6, seatClass);
                 pStatement.setInt(7, row);
-                pStatement.setString(8, String.valueOf(letter));
+                pStatement.setString(8, letter);
 
                 pStatement.executeUpdate();
 
@@ -222,14 +259,14 @@ public class Assignment2 {
                         + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + row + letter + ")");
 
                 return true;
-            } else if (seatClass == "economy"){
-                // check whether there is empty seat
+            } else if (seatClass.equals("economy")){
+                // check whether there are tickets
                 if (num_booked - Eco_capacity >= 10){
                     System.out.println("No more seat. Cannot finish the request.");
                     return false;
                 }
 
-                // if there is emtpy seats
+                // if there is 
 
                 // get the current price
                 queryString = "SELECT " + seatClass + " FROM Price WHERE flight_id = ?";
@@ -256,18 +293,18 @@ public class Assignment2 {
 
                 // calculate the seat number
                 int row = 0;
-                char letter;
+                String letter;
 
                 if (num_booked < Eco_capacity){
                     row = num_booked / 6
                             + (int)Math.ceil(First_capacity / 6.0)
                             + (int)Math.ceil(Bus_capacity / 6.0) + 1;
-                    letter = (char)('A' + num_booked % 6);
+                    letter = seatLetters.get(num_booked % 6);
 
-                    System.out.printf("Booked seat at: %d%c\n", row, letter);
+                    System.out.printf("Booked seat at: %d%s\n", row, letter);
 
                     pStatement.setInt(7, row);
-                    pStatement.setString(8, String.valueOf(letter));
+                    pStatement.setString(8, letter);
 
                     pStatement.executeUpdate();
                     System.out.println("(" + booking_id + "," + passID + ","
@@ -309,6 +346,11 @@ public class Assignment2 {
      */
     public int upgrade(int flightID) {
         try {
+            // sanity check
+            if (connection == null){
+                System.out.println("Not Connected!");
+                return -1;
+            }
             // Implement this method!
 
             String queryString;
@@ -403,7 +445,7 @@ public class Assignment2 {
                         System.out.printf("The booking_id for upgrading is %d.\n", booking_id);
 
                         // obtained the new seats
-                        int new_row = (num_booked_bus-1) / 6 + (int)Math.ceil(First_capacity / 6.0) + 1;;
+                        int new_row = (num_booked_bus-1) / 6 + (int)Math.ceil(First_capacity / 6.0) + 1;
                         char new_letter = (char)('A' + (num_booked_bus-1) % 6);
                         String new_seat_class = "business";
 
@@ -541,7 +583,7 @@ public class Assignment2 {
 
         try{
             Assignment2 a2 = new Assignment2();
-            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-sunlingw", "sunlingw", "");
+            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-wangw222", "wangw222", "");
 
             for(int i=0; i<140; i++) {
                 a2.bookSeat(1, 9, "economy");
