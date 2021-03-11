@@ -27,6 +27,9 @@ DROP VIEW IF EXISTS ThreeFlightwithAirport CASCADE;
 DROP VIEW IF EXISTS TwoTranFlightsFromCA CASCADE;
 DROP VIEW IF EXISTS TwoTranFlightsFromUS CASCADE;
 DROP TABLE IF EXISTS combined CASCADE;
+DROP VIEW IF EXISTS AllCities CASCADE;
+DROP VIEW IF EXISTS AllCityPairs CASCADE;
+DROP VIEW IF EXISTS PairsWithoutFlights CASCADE;
 
 -- Define views for your intermediate steps here:
 
@@ -69,7 +72,7 @@ select a.id,
 		a.s_dep, a.s_arv as s_tran_arv,
 		b.s_dep as s_tran_dep, b.s_arv
 from FlightwithAirport a, FlightwithAirport b
-where a.inbound = b.outbound and b.s_dep - a.s_arv > '00:30:00';
+where a.inbound = b.outbound and b.s_dep - a.s_arv >= '00:30:00';
 
 -- 4. count for one transition flights of two directions with earlist arrival time for each 
 
@@ -99,7 +102,7 @@ select a.id,
 		b.s_dep as s_tran_2_dep, b.s_arv
 		
 from TwoFlightwithAirport a, FlightwithAirport b
-where a.inbound = b.outbound and b.s_dep - a.s_arv > '00:30:00';
+where a.inbound = b.outbound and b.s_dep - a.s_arv >= '00:30:00';
 
 -- 6. count for two transition flights of two directions with earlist arrival time for each 
 
@@ -150,8 +153,31 @@ insert into combined(outbound, inbound, two_con, earliest)
 select out_city, in_city, num_two, earlist_arrival
 from TwoTranFlightsFromUS;
 
+-- 8. Find the other pairs of cities that are not included, does not have flights in between
+
+create view AllCities as
+select Distinct city, country
+from airport
+where country = 'Canada' or country = 'USA';
+
+create view AllCityPairs as
+select a.city as outbound, b.city as inbound
+from AllCities a, AllCities b
+where a.country<>b.country;
+
+create view PairsWithoutFlights as
+(select outbound, inbound
+from AllCityPairs)
+EXCEPT
+(select distinct outbound, inbound
+from combined);
+
 -- Your query that answers the question goes below the "insert into" line:
 INSERT INTO q3 (outbound, inbound, direct, one_con, two_con, earliest)
 select outbound, inbound, sum(direct), sum(one_con), sum(two_con), min(earliest)
 from combined
 group by outbound, inbound;
+
+INSERT INTO q3 (outbound, inbound, direct, one_con, two_con)
+select outbound, inbound, 0, 0, 0
+from PairsWithoutFlights;
