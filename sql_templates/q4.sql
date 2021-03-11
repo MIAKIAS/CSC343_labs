@@ -79,8 +79,8 @@ from FlightCapacity a natural left join FlightBooking b;
 -- 4. keep track of the not departured flights and still not in the list
 
 create view NotDepartured as
-(select airline, plane as tail_number
-from Flight)
+(select airline, tail_number
+from Plane)
 EXCEPT
 (select airline, tail_number
 from CapacityBooking);
