@@ -22,7 +22,7 @@ DROP VIEW IF EXISTS DeparturedFlightCapacity CASCADE;
 DROP TABLE IF EXISTS FlightTotalCapacity CASCADE;
 DROP VIEW IF EXISTS FlightCapacity CASCADE;
 DROP VIEW IF EXISTS FlightBooking CASCADE;
-
+DROP VIEW IF EXISTS NotDepartured CASCADE;
 
 -- Define views for your intermediate steps here:
 
@@ -76,8 +76,26 @@ create view CapacityBooking as
 select a.flight_id, airline, tail_number, COALESCE((100 * num_booking / total_capacity), 0) as percentage
 from FlightCapacity a natural left join FlightBooking b;
 
+-- 4. keep track of the not departured flights and still not in the list
+
+create view NotDepartured as
+(select airline, plane as tail_number
+from Flight)
+EXCEPT
+(select airline, tail_number
+from CapacityBooking);
 
 -- Your query that answers the question goes below the "insert into" line:
+
+INSERT INTO q4
+select airline, tail_number, 
+		0 as very_low,
+		0 as low,
+		0 as fair,
+		0 as normal,
+		0 as high
+from NotDepartured;
+
 INSERT INTO q4
 select airline, tail_number, 
 		0 as very_low,
@@ -86,7 +104,7 @@ select airline, tail_number,
 		0 as normal,
 		count(flight_id) as high 
 from CapacityBooking
-where percentage>80
+where percentage>=80
 group by airline, tail_number;
 
 INSERT INTO q4
@@ -97,7 +115,7 @@ select airline, tail_number,
 		count(flight_id) as normal,
 		0 as high 
 from CapacityBooking
-where percentage>60 and percentage<=80
+where percentage>=60 and percentage<80
 group by airline, tail_number;
 
 INSERT INTO q4
@@ -108,7 +126,7 @@ select airline, tail_number,
 		0 as normal,
 		0 as high 
 from CapacityBooking
-where percentage>40 and percentage<=60
+where percentage>=40 and percentage<60
 group by airline, tail_number;
 
 INSERT INTO q4
@@ -119,7 +137,7 @@ select airline, tail_number,
 		0 as normal,
 		0 as high 
 from CapacityBooking
-where percentage>20 and percentage<=40
+where percentage>=20 and percentage<40
 group by airline, tail_number;
 
 INSERT INTO q4
@@ -130,5 +148,5 @@ select airline, tail_number,
 		0 as normal,
 		0 as high 
 from CapacityBooking
-where percentage>=0 and percentage<=20
+where percentage>=0 and percentage<20
 group by airline, tail_number;
