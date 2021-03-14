@@ -67,7 +67,7 @@ public class Assignment2 {
                 return false;
 
             }
-            
+
 
         } catch (SQLException se){
 
@@ -158,7 +158,7 @@ public class Assignment2 {
                 System.out.println("No such a passenger.");
                 return false;
             }
-            
+
 
             // check the capacity of the flight
             queryString = "SELECT capacity_economy, capacity_business, capacity_first FROM Flight, Plane WHERE id = ? AND Flight.plane = tail_number";
@@ -266,7 +266,7 @@ public class Assignment2 {
                     return false;
                 }
 
-                // if there is 
+                // if there is
 
                 // get the current price
                 queryString = "SELECT " + seatClass + " FROM Price WHERE flight_id = ?";
@@ -409,6 +409,35 @@ public class Assignment2 {
                 return 0;
             }
             else{
+                //if exceed 10 people overbooked, delete the rest of them
+                if(num_booked_eco > Eco_capacity+10) {
+                    int num_to_remove = num_booked_eco - Eco_capacity - 10;
+                    System.out.printf("%d of passengers are deleted. No upgrading policy for them.\n", num_to_remove);
+
+                    queryString = "select id from booking where flight_id = ? and seat_class = 'economy' and row is NULL order by datetime desc";
+                    pStatement = connection.prepareStatement(queryString);
+                    pStatement.setInt(1, flightID);
+                    rs = pStatement.executeQuery();
+
+                    int booking_id = 0;
+                    while (rs.next() && num_to_remove>0) {
+                        booking_id = rs.getInt("id");
+                        System.out.printf("The booking_id no place for upgrade is %d.\n", booking_id);
+
+                        String SQL = "DELETE FROM booking WHERE id = ?";
+                        pStatement = connection.prepareStatement(SQL);
+                        pStatement.setInt(1, booking_id);
+
+                        int affectedrows = 0;
+                        affectedrows = pStatement.executeUpdate();
+                        System.out.printf(" %d of rows affected. Suffessfully deleted booking_id=%d in flight_id=%d.\n", affectedrows, booking_id, flightID);
+
+                        num_to_remove --;
+                    }
+
+                    num_booked_eco = Eco_capacity + 10;
+                }
+
                 int num_to_upgrade = num_booked_eco - Eco_capacity;
 
                 // get the number of seats in business class booked
