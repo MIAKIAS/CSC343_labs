@@ -45,8 +45,8 @@ create view FlightwithAirport as
 select id, outbound, out_city, out_country, inbound, city as in_city, country as in_country, s_dep, s_arv
 from FlightwithAirportOut, Airport
 where inbound = code and 
-		s_dep>='2021-04-30 00:00:00' and s_dep<='2021-04-30 23:59:59' and 
-		s_arv>='2021-04-30 00:00:00' and s_arv<='2021-04-30 23:59:59';
+		s_dep>='2021-04-30 00:00:00' and s_dep<'2021-05-01 00:00:00' and 
+		s_arv>='2021-04-30 00:00:00' and s_arv<'2021-05-01 00:00:00';
 
 -- 2. count for direct flights of two directions with earlist arrival time for each flights
 
