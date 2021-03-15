@@ -49,16 +49,16 @@ public class Assignment2 {
         try{
 
             // establish connection
-            System.out.println("Connecting as user: " + username);
+            // System.out.println("Connecting as user: " + username);
             connection = DriverManager.getConnection(URL, username, password);
-            System.out.println("Successfully Connected!");
+            // System.out.println("Successfully Connected!");
 
             if (connection != null){
                 // set search path
                 String queryString = "SET SEARCH_PATH TO air_travel, public";
                 PreparedStatement pStatement = connection.prepareStatement(queryString);
                 pStatement.executeUpdate();
-                System.out.println("Set search_path to air_travel, public");
+                // System.out.println("Set search_path to air_travel, public");
 
                 return true;
 
@@ -71,7 +71,7 @@ public class Assignment2 {
 
         } catch (SQLException se){
 
-            System.out.println("Error: " + se);
+            // System.out.println("Error: " + se);
 
             return false;
         }
@@ -87,18 +87,18 @@ public class Assignment2 {
         // Implement this method!
         try{
             if (connection == null){
-                System.out.println("Not Connected!");
+                // System.out.println("Not Connected!");
                 return false;
             }
 
             connection.close();
 
-            System.out.println("Bye~");
+            // System.out.println("Bye~");
 
             return true;
         } catch (SQLException se){
 
-            System.out.println("Error: " + se);
+            // System.out.println("Error: " + se);
 
             return false;
         }
@@ -123,7 +123,7 @@ public class Assignment2 {
         // Implement this method!
         try{
             if (connection == null){
-                System.out.println("Not Connected!");
+                // System.out.println("Not Connected!");
                 return false;
             }
 
@@ -136,16 +136,14 @@ public class Assignment2 {
                 return false;
             }
 
-            // check valid passID flightID ?????? 还不清楚
-
             // check valid flightID
             // Assume only consider flights with a scheduled departure time later than current time
-            queryString = "SELECT * FROM Flight WHERE id = ? AND s_dep >= now()";
+            queryString = "SELECT * FROM Flight WHERE id = ?";
             pStatement = connection.prepareStatement(queryString);
             pStatement.setInt(1, flightID);
             rs = pStatement.executeQuery();
             if (!rs.next()){
-                System.out.println("No such a flight.");
+                // System.out.println("No such a flight.");
                 return false;
             }
 
@@ -155,7 +153,7 @@ public class Assignment2 {
             pStatement.setInt(1, passID);
             rs = pStatement.executeQuery();
             if (!rs.next()){
-                System.out.println("No such a passenger.");
+                // System.out.println("No such a passenger.");
                 return false;
             }
 
@@ -176,7 +174,7 @@ public class Assignment2 {
                 First_capacity = rs.getInt("capacity_first");
             }
 
-            System.out.printf("Economy Capacity: %d\nBusiness Capacity: %d\nFirst Capacity: %d\n", Eco_capacity, Bus_capacity, First_capacity);
+            // System.out.printf("Economy Capacity: %d\nBusiness Capacity: %d\nFirst Capacity: %d\n", Eco_capacity, Bus_capacity, First_capacity);
 
             // find the current max booking id
             queryString = "SELECT max(id) FROM Booking";
@@ -200,21 +198,20 @@ public class Assignment2 {
             while (rs.next()){
                 num_booked = rs.getInt("count");
             }
-            System.out.printf("Number of seats booked: %d\n", num_booked);
+            // System.out.printf("Number of seats booked: %d\n", num_booked);
 
             if (seatClass.equals("business") || seatClass.equals("first")){
 
                 // check whether there is empty seat
                 if ((seatClass.equals("business") && num_booked >= Bus_capacity)
                         || (seatClass.equals("first") && num_booked >= First_capacity)){
-                    System.out.println("No more seat. Cannot finish the request.");
+                    // System.out.println("No more seat. Cannot finish the request.");
                     return false;
                 }
 
                 // if there is emtpy seats
 
                 // get the current price
-                // 如果这个flight没有对应的price？？？？？
                 queryString = "SELECT " + seatClass + " FROM Price WHERE flight_id = ?";
                 pStatement = connection.prepareStatement(queryString);
                 pStatement.setInt(1, flightID);
@@ -225,7 +222,7 @@ public class Assignment2 {
                     price = rs.getInt(seatClass);
                 }
 
-                System.out.printf("Price: %d\n", price);
+                // System.out.printf("Price: %d\n", price);
 
                 // calculate the seat number
                 int row = 0;
@@ -239,7 +236,7 @@ public class Assignment2 {
                     letter = seatLetters.get(num_booked % 6);
                 }
 
-                System.out.printf("Booked seat at: %d%s\n", row, letter);
+                // System.out.printf("Booked seat at: %d%s\n", row, letter);
 
                 // insert the booking information into table Booking
                 queryString = "INSERT INTO Booking VALUES (?,?,?,?,?,?::seat_class,?,?)";
@@ -255,14 +252,14 @@ public class Assignment2 {
 
                 pStatement.executeUpdate();
 
-                System.out.println("(" + booking_id + "," + passID + ","
-                        + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + row + letter + ")");
+                // System.out.println("(" + booking_id + "," + passID + ","
+                //         + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + row + letter + ")");
 
                 return true;
             } else if (seatClass.equals("economy")){
                 // check whether there are tickets
                 if (num_booked - Eco_capacity >= 10){
-                    System.out.println("No more seat. Cannot finish the request.");
+                    // System.out.println("No more seat. Cannot finish the request.");
                     return false;
                 }
 
@@ -279,7 +276,7 @@ public class Assignment2 {
                     price = rs.getInt(seatClass);
                 }
 
-                System.out.printf("Price: %d\n", price);
+                // System.out.printf("Price: %d\n", price);
 
                 // insert the booking information into table Booking
                 queryString = "INSERT INTO Booking VALUES (?,?,?,?,?,?::seat_class,?,?)";
@@ -301,29 +298,29 @@ public class Assignment2 {
                             + (int)Math.ceil(Bus_capacity / 6.0) + 1;
                     letter = seatLetters.get(num_booked % 6);
 
-                    System.out.printf("Booked seat at: %d%s\n", row, letter);
+                    // System.out.printf("Booked seat at: %d%s\n", row, letter);
 
                     pStatement.setInt(7, row);
                     pStatement.setString(8, letter);
 
                     pStatement.executeUpdate();
-                    System.out.println("(" + booking_id + "," + passID + ","
-                            + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + row + letter + ")");
+                    // System.out.println("(" + booking_id + "," + passID + ","
+                    //         + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + row + letter + ")");
 
                 } else{
-                    System.out.println("Overbooked. Cannot assign a seat.");
+                    // System.out.println("Overbooked. Cannot assign a seat.");
                     pStatement.setNull(7, Types.INTEGER);
                     pStatement.setNull(8, Types.CHAR);
                     pStatement.executeUpdate();
-                    System.out.println("(" + booking_id + "," + passID + ","
-                            + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + "NULL,NULL)");
+                    // System.out.println("(" + booking_id + "," + passID + ","
+                    //         + flightID + "," + getCurrentTimeStamp() + "," + price + "," + seatClass + "," + "NULL,NULL)");
                 }
 
                 return true;
             }
             return false;
         } catch (SQLException se){
-            System.out.println("Error: " + se);
+            // System.out.println("Error: " + se);
             return false;
         }
 
@@ -348,7 +345,7 @@ public class Assignment2 {
         try {
             // sanity check
             if (connection == null){
-                System.out.println("Not Connected!");
+                // System.out.println("Not Connected!");
                 return -1;
             }
             // Implement this method!
@@ -365,11 +362,11 @@ public class Assignment2 {
             rs = pStatement.executeQuery();
 
             boolean is_empty = true;
-            while (rs.next()) {
+            if (rs.next()) {
                 is_empty = false;
             }
             if(is_empty){
-                System.out.printf("The flight id %d does not exist in the table Flight. Exit with Error.\n", flightID);
+                // System.out.printf("The flight id %d does not exist in the table Flight. Exit with Error.\n", flightID);
                 return -1;
             }
 
@@ -389,7 +386,7 @@ public class Assignment2 {
                 First_capacity = rs.getInt("capacity_first");
             }
 
-            System.out.printf("Economy Capacity: %d\nBusiness Capacity: %d\nFirst Capacity: %d\n", Eco_capacity, Bus_capacity, First_capacity);
+            // System.out.printf("Economy Capacity: %d\nBusiness Capacity: %d\nFirst Capacity: %d\n", Eco_capacity, Bus_capacity, First_capacity);
 
             // get the number of seats in ecnomy class booked
             queryString = "SELECT count(id) FROM Booking WHERE flight_id = ? and seat_class = 'economy' group by flight_id";
@@ -401,18 +398,18 @@ public class Assignment2 {
             while (rs.next()) {
                 num_booked_eco = rs.getInt("count");
             }
-            System.out.printf("Number of seats booked: %d in economy class\n", num_booked_eco);
+            // System.out.printf("Number of seats booked: %d in economy class\n", num_booked_eco);
 
             //check if needed upgrade, if not return 0
             if(num_booked_eco <= Eco_capacity){
-                System.out.printf("The flight id %d has %d economy seats in total with %d of them booked. No passenger is needed for upgrading.\n", flightID, Eco_capacity, num_booked_eco);
+                // System.out.printf("The flight id %d has %d economy seats in total with %d of them booked. No passenger is needed for upgrading.\n", flightID, Eco_capacity, num_booked_eco);
                 return 0;
             }
             else{
                 //if exceed 10 people overbooked, delete the rest of them
                 if(num_booked_eco > Eco_capacity+10) {
                     int num_to_remove = num_booked_eco - Eco_capacity - 10;
-                    System.out.printf("%d of passengers are deleted. No upgrading policy for them.\n", num_to_remove);
+                    // System.out.printf("%d of passengers are deleted. No upgrading policy for them.\n", num_to_remove);
 
                     queryString = "select id from booking where flight_id = ? and seat_class = 'economy' and row is NULL order by datetime desc";
                     pStatement = connection.prepareStatement(queryString);
@@ -422,7 +419,7 @@ public class Assignment2 {
                     int booking_id = 0;
                     while (rs.next() && num_to_remove>0) {
                         booking_id = rs.getInt("id");
-                        System.out.printf("The booking_id no place for upgrade is %d.\n", booking_id);
+                        // System.out.printf("The booking_id no place for upgrade is %d.\n", booking_id);
 
                         String SQL = "DELETE FROM booking WHERE id = ?";
                         pStatement = connection.prepareStatement(SQL);
@@ -430,7 +427,7 @@ public class Assignment2 {
 
                         int affectedrows = 0;
                         affectedrows = pStatement.executeUpdate();
-                        System.out.printf(" %d of rows affected. Suffessfully deleted booking_id=%d in flight_id=%d.\n", affectedrows, booking_id, flightID);
+                        // System.out.printf(" %d of rows affected. Suffessfully deleted booking_id=%d in flight_id=%d.\n", affectedrows, booking_id, flightID);
 
                         num_to_remove --;
                     }
@@ -450,11 +447,11 @@ public class Assignment2 {
                 while (rs.next()) {
                     num_booked_bus = rs.getInt("count");
                 }
-                System.out.printf("Number of seats booked: %d in business class\n", num_booked_bus);
+                // System.out.printf("Number of seats booked: %d in business class\n", num_booked_bus);
 
                 while(num_to_upgrade > 0) {
                     if (num_booked_bus == Bus_capacity) {
-                        System.out.println("Business class is full, try for first class.");
+                        // System.out.println("Business class is full, try for first class.");
                         break;
                     } else {
                         num_to_upgrade--;
@@ -471,7 +468,7 @@ public class Assignment2 {
                         if (rs.next()) {
                             booking_id = rs.getInt("id");
                         }
-                        System.out.printf("The booking_id for upgrading is %d.\n", booking_id);
+                        // System.out.printf("The booking_id for upgrading is %d.\n", booking_id);
 
                         // obtained the new seats
                         int new_row = (num_booked_bus-1) / 6 + (int)Math.ceil(First_capacity / 6.0) + 1;
@@ -489,7 +486,7 @@ public class Assignment2 {
                         int affectedrows = 0;
                         affectedrows = pStatement.executeUpdate();
 
-                        System.out.printf(" %d of rows affected. Suffessfully update booking_id=%d in flight_id=%d to business class row=%d and letter=%c.\n", affectedrows, booking_id, flightID, new_row, new_letter);
+                        // System.out.printf(" %d of rows affected. Suffessfully update booking_id=%d in flight_id=%d to business class row=%d and letter=%c.\n", affectedrows, booking_id, flightID, new_row, new_letter);
                     }
                 }
 
@@ -503,11 +500,11 @@ public class Assignment2 {
                 while (rs.next()) {
                     num_booked_first = rs.getInt("count");
                 }
-                System.out.printf("Number of seats booked: %d in first class\n", num_booked_first);
+                // System.out.printf("Number of seats booked: %d in first class\n", num_booked_first);
 
                 while(num_to_upgrade > 0) {
                     if (num_booked_first == First_capacity) {
-                        System.out.println("First class is full, no place for more passengers.");
+                        // System.out.println("First class is full, no place for more passengers.");
                         break;
                     } else {
                         num_to_upgrade--;
@@ -524,7 +521,7 @@ public class Assignment2 {
                         if (rs.next()) {
                             booking_id = rs.getInt("id");
                         }
-                        System.out.printf("The booking_id for upgrading is %d.\n", booking_id);
+                        // System.out.printf("The booking_id for upgrading is %d.\n", booking_id);
 
                         // obtained the new seats
                         int new_row = (num_booked_first-1) / 6 + 1;
@@ -542,14 +539,14 @@ public class Assignment2 {
                         int affectedrows = 0;
                         affectedrows = pStatement.executeUpdate();
 
-                        System.out.printf(" %d of rows affected. Suffessfully update booking_id=%d in flight_id=%d to first class row=%d and letter=%c.\n", affectedrows, booking_id, flightID, new_row, new_letter);
+                        // System.out.printf(" %d of rows affected. Suffessfully update booking_id=%d in flight_id=%d to first class row=%d and letter=%c.\n", affectedrows, booking_id, flightID, new_row, new_letter);
                     }
                 }
 
                 // delete the passenger that are no place for upgrade
 
                 if(num_to_upgrade>0){
-                    System.out.printf("%d of passengers are deleted. No seats for them.\n", num_to_upgrade);
+                    // System.out.printf("%d of passengers are deleted. No seats for them.\n", num_to_upgrade);
 
                     queryString = "select id from booking where flight_id = ? and seat_class = 'economy' and row is NULL order by datetime";
                     pStatement = connection.prepareStatement(queryString);
@@ -559,7 +556,7 @@ public class Assignment2 {
                     int booking_id = 0;
                     while (rs.next()) {
                         booking_id = rs.getInt("id");
-                        System.out.printf("The booking_id no place for upgrade is %d.\n", booking_id);
+                        // System.out.printf("The booking_id no place for upgrade is %d.\n", booking_id);
 
                         String SQL = "DELETE FROM booking WHERE id = ?";
                         pStatement = connection.prepareStatement(SQL);
@@ -567,16 +564,16 @@ public class Assignment2 {
 
                         int affectedrows = 0;
                         affectedrows = pStatement.executeUpdate();
-                        System.out.printf(" %d of rows affected. Suffessfully deleted booking_id=%d in flight_id=%d.\n", affectedrows, booking_id, flightID);
+                        // System.out.printf(" %d of rows affected. Suffessfully deleted booking_id=%d in flight_id=%d.\n", affectedrows, booking_id, flightID);
                     }
                 }
 
             }
 
-            System.out.printf("Finally, %d of passengers are upgraded.\n", to_return);
+            // System.out.printf("Finally, %d of passengers are upgraded.\n", to_return);
             return to_return;
         } catch (SQLException se){
-            System.out.println("Error: " + se);
+            // System.out.println("Error: " + se);
             return -1;
         }
 
@@ -607,12 +604,12 @@ public class Assignment2 {
 
     public static void main(String[] args) {
         // You can put testing code in here. It will not affect our autotester.
-        System.out.println("Running the code!");
-        System.out.println("test");
+        // System.out.println("Running the code!");
+        // System.out.println("test");
 
         try{
             Assignment2 a2 = new Assignment2();
-            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-wangw222", "wangw222", "");
+            a2.connectDB("jdbc:postgresql://localhost:5432/csc343h-sunlingw", "sunlingw", "");
 
             for(int i=0; i<140; i++) {
                 a2.bookSeat(1, 9, "economy");
@@ -626,12 +623,21 @@ public class Assignment2 {
                 a2.bookSeat(1, 9, "first");
             }
 
-            System.out.println("\n-----------------------------up grade----------------------");
-            a2.upgrade(9);
-            System.out.println("-----------------------------up grade----------------------\n");
+            // System.out.println("\n-----------------------------up grade----------------------");
+            int out = a2.upgrade(9);
+            // System.out.println("9 = " + out);
+            out = a2.upgrade(2);
+            // System.out.println("2 = " + out);
+            out = a2.upgrade(10);
+            // System.out.println("10 = " + out);
+
+            out = a2.upgrade(5);
+            // System.out.println("5 = " + out);
+
+            // System.out.println("-----------------------------up grade----------------------\n");
             a2.disconnectDB();
         } catch (SQLException se){
-            System.out.println("??");
+            // System.out.println("??");
         }
 
     }
