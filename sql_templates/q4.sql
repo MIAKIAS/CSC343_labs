@@ -23,6 +23,7 @@ DROP TABLE IF EXISTS FlightTotalCapacity CASCADE;
 DROP VIEW IF EXISTS FlightCapacity CASCADE;
 DROP VIEW IF EXISTS FlightBooking CASCADE;
 DROP VIEW IF EXISTS NotDepartured CASCADE;
+DROP TABLE IF EXISTS answer CASCADE;
 
 -- Define views for your intermediate steps here:
 
@@ -67,7 +68,7 @@ group by flight_id, airline, tail_number;
 create view FlightBooking as
 select count(id) as num_booking, flight_id
 from Booking
-where id in (select id from DeparturedFlight)
+where flight_id in (select id from DeparturedFlight)
 group by flight_id;
 
 -- 3. calculate and category the pencentage of booking capacity
@@ -85,9 +86,19 @@ EXCEPT
 (select airline, tail_number
 from CapacityBooking);
 
--- Your query that answers the question goes below the "insert into" line:
+-- 5. prepare for answer
 
-INSERT INTO q4
+CREATE TABLE answer (
+	airline CHAR(2),
+	tail_number CHAR(5),
+	very_low INT,
+	low INT,
+	fair INT,
+	normal INT,
+	high INT
+);
+
+INSERT INTO answer
 select airline, tail_number, 
 		0 as very_low,
 		0 as low,
@@ -96,7 +107,7 @@ select airline, tail_number,
 		0 as high
 from NotDepartured;
 
-INSERT INTO q4
+INSERT INTO answer
 select airline, tail_number, 
 		0 as very_low,
 		0 as low,
@@ -107,7 +118,7 @@ from CapacityBooking
 where percentage>=80
 group by airline, tail_number;
 
-INSERT INTO q4
+INSERT INTO answer
 select airline, tail_number, 
 		0 as very_low,
 		0 as low,
@@ -118,7 +129,7 @@ from CapacityBooking
 where percentage>=60 and percentage<80
 group by airline, tail_number;
 
-INSERT INTO q4
+INSERT INTO answer
 select airline, tail_number, 
 		0 as very_low,
 		0 as low,
@@ -129,7 +140,7 @@ from CapacityBooking
 where percentage>=40 and percentage<60
 group by airline, tail_number;
 
-INSERT INTO q4
+INSERT INTO answer
 select airline, tail_number, 
 		0 as very_low,
 		count(flight_id) as low,
@@ -140,7 +151,7 @@ from CapacityBooking
 where percentage>=20 and percentage<40
 group by airline, tail_number;
 
-INSERT INTO q4
+INSERT INTO answer
 select airline, tail_number, 
 		count(flight_id) as very_low,
 		0 as low,
@@ -150,3 +161,11 @@ select airline, tail_number,
 from CapacityBooking
 where percentage>=0 and percentage<20
 group by airline, tail_number;
+
+-- Your query that answers the question goes below the "insert into" line:
+
+INSERT INTO q4 
+select airline, tail_number, sum(very_low), sum(low), sum(fair), sum(normal), sum(high)
+from answer
+group by airline, tail_number;
+
